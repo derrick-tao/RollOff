@@ -1,3 +1,6 @@
+var rollOffApp = angular.module('rollOffApp', ['ui']).
+    service('$game', Game);
+
 var UI = {
     addRoundHeader: function(n) {
         $('table.table thead tr').append('<th>' + (n + 1) + '</th>');
@@ -42,18 +45,25 @@ var UI = {
     },
 }
 
+function AddPlayerCtrl($scope, $game) {
+    $scope.addPlayer = function() {
+        var name = $scope.playerName;
+        if (name != undefined && name != '') { // TOOD: add proper validation via 'required'
+            var player = new Player(name);
+            $game.addPlayer(player);
+            $scope.playerName = '';
+            UI.addPlayer(player);
+        }
+        // if($game.players.length > 1) {
+        //     $('#startGame').removeAttr('disabled');
+        // }
+    }
+}
+
 function initializeListenersFor(game) {
-    $('#formInput button').click(function() { handlers.addPlayer(game)});
     $('#formInput input').focus(function(e) {
         UI.scrollToElement($(this));
     })
-    $('#formInput input').keydown(function(e) {
-        var keycode = (event.keyCode ? event.keyCode : event.which);
-        if(keycode == '13'){
-            handlers.addPlayer(game);
-            UI.scrollToElement($(this));
-        } 
-    });
     $('#startGame').click(function() { handlers.startGame(game)});
 	$('#formAddScore button').click( function() { 
         var score = $(this).html();
@@ -124,6 +134,7 @@ var handlers = {
 }
 
 $(document).ready(function() {
-    Game.game = new Game();
-    initializeListenersFor(Game.game);
+    // Game.game = new Game();
+    // initializeListenersFor(Game.game);
+    document.game = angular.element(document).injector().get('$game');
 });
