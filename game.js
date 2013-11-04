@@ -84,6 +84,17 @@ Game.prototype = {
         return player;
     },
 
+    getWinner: function() {
+        var player;
+        $.each(this.players, function(i, p) {
+            if (p.rank == 1) {
+                player = p;
+                return;
+            }
+        });
+        return player;
+    },
+
     addPlayer: function(player) { this.players.push(player); },
 
     start: function() {
@@ -212,5 +223,18 @@ Game.prototype = {
             }
         });
         return previousPlayer;
-    }
+    },
+
+    hasEnoughPlayers: function() {
+        return this.players.length > 1;
+    },
+
+    hasGameStarted: function() {
+        return this.rank != undefined;
+    },
+
+    isNewRound: function() {
+        return this.cur == 0;
+    },
+
 }
