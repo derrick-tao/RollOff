@@ -38,7 +38,12 @@ Player.sort = {
 
 Player.filter = {
     isIn: function(p) { return p.isIn(); },
-    isOut: function(p) { return p.isOut(); } 
+    isOut: function(p) { return p.isOut(); },
+    wasInRound: function(round) {
+        return function(p) {
+            return p.getScores()[round] != undefined;
+        }
+    }
 }
 
 Player.prototype = {
@@ -106,10 +111,15 @@ Game.prototype = {
         });
         this.rank = this.players.length
         this.orderHistory = [];
+        this.players = this.getOrderOfPlayers();
     },
 
     getPlayersInGame: function() {
         return this.players.filter(Player.filter.isIn);
+    },
+
+    getPlayersOutOfGame: function() {
+        return this.players.filter(Player.filter.isOut);
     },
 
     getOrderOfPlayers: function() {
@@ -144,7 +154,7 @@ Game.prototype = {
         return this.addScore(this.getCurrentPlayer(), score);
     },
 
-    dropLoser: function() {
+    dropLosers: function() {
         if (this.isOver()) return [];
         var ranked = this.getPlayersInGame().sort(Player.sort.byLastScoreLowToHigh);
         var allSame = true;
@@ -182,59 +192,42 @@ Game.prototype = {
         var losers = [];
         this.cur = (this.cur + 1) % this.getPlayersInGame().length;
         if (this.cur == 0) {
-            this.nextRound();
-            $.each(this.dropLoser(), function(i, p) {
+            $.each(this.dropLosers(), function(i, p) {
                 losers.push(p);
             });
-        }
-        if (this.getPlayersInGame().length == 1) {
-            losers.push(this.dropLoser()[0]);
-            this.restartedPlayerOrder = this.players.sort(Player.sort.byRank);
+            if (this.getPlayersInGame().length == 1) {
+                losers.push(this.dropLosers()[0]);
+                this.restartedPlayerOrder = this.getPlayersOutOfGame().sort(Player.sort.byRank);
+            } else {
+                this.nextRound();
+            } 
         }
         return losers;
     },
 
     undoLast: function() {
-        if (this.orderHistory.length == 0) return false;
-        if (this.cur == 0) {
+        if (this.canUndoLast()) return false;
+        if (this.cur == 0 && !this.isOver() && this.round > 0) {
             this.round -= 1;
+        }
+        var losers = this.players.filter(Player.filter.wasInRound(this.round)).filter(Player.filter.isOut);
+        if (losers.length > 0) {
+            $.each(losers, function(i, p) {
+                p.setRank(null);
+            });
+            this.rank += losers.length;
+            this.restartedPlayerOrder = false;
         }
         var previousPlayer = this.getPlayer(this.orderHistory.pop());
         previousPlayer.getScores().pop();
-        if (previousPlayer.getRank() != null) {
-            if (this.isOver()) {
-                this.rank += 2;
-                $.each(this.players, function(i, p) {
-                    if (p.getRank() == 1 || p.getRank() == 2)
-                        p.setRank(null);
-                });
-            } else {
-                this.rank += 1;
-                $.each(this.players, function(i, p) {
-                    if (p.getRank() == this.rank)
-                        p.setRank(null);
-                });
-            }
-        }
-        var game = this;
-        $.each(this.getOrderOfPlayers(), function(i, p) {
-            if (p.getId() == previousPlayer.getId()) {
-                game.cur = i;
-            }
-        });
+        this.cur = (this.cur + this.getPlayersInGame().length - 1) % this.getPlayersInGame().length;
         return previousPlayer;
     },
 
-    hasEnoughPlayers: function() {
-        return this.players.length > 1;
-    },
-
-    hasGameStarted: function() {
-        return this.rank != undefined;
-    },
-
-    isNewRound: function() {
-        return this.cur == 0;
-    },
+    canUndoLast: function() { return this.orderHistory.length == 0; },
+    hasEnoughPlayers: function() { return this.players.length > 1; },
+    hasGameStarted: function() { return this.rank != undefined; },
+    isNewRound: function() { return this.cur == 0; },
+    getRound: function() { return this.round; },
 
 }
