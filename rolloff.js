@@ -19,7 +19,7 @@ function GameCtrl($scope, $game, $ui) {
     $scope['$game'] = $game;
 
     $scope.getPlayers = function() {
-        return $game.players;
+        return $game.getDisplayOrderedPlayers();
     }
 
     $scope.getRounds = function() {

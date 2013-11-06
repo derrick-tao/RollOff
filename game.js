@@ -13,25 +13,16 @@ Player.sort = {
             return 1;
         return 0; 
     },
-    byRank: function(a, b) { 
-        return a.getRank() - b.getRank();
-    },
-    byLastScoreLowToHigh: function(a, b) {
-        return a.getLastScore() - b.getLastScore(); 
-    },
-    byLastScoreHighToLow: function(a,b) {
-        return b.getLastScore() - a.getLastScore();
-    },
-    byRoundScoreHighToLow: function(round) {
+    byRank: function(a, b) { return  a.getRank() - b.getRank(); },
+    byLastScoreLowToHigh: function(a, b) { return a.getLastScore() - b.getLastScore(); },
+    byLastScoreHighToLow: function(a,b) { return b.getLastScore() - a.getLastScore(); },
+    byRoundScoreHighToLow: function(round,restartedPlayerOrder) {
         return function(a,b) {
             var n = b.getRoundScore(round) - a.getRoundScore(round);
-            if (n == 0) {
-                if (round - 1 < 0) {
-                    return Player.sort.byName(a,b);
-                }
-                return Player.sort.byRoundScoreHighToLow(round - 1)(a,b);
-            }
-            return n;
+            if (n > 0 || n < 0) return n;
+            if (round > 0) return Player.sort.byRoundScoreHighToLow(round - 1, restartedPlayerOrder)(a,b);
+            if (restartedPlayerOrder) return restartedPlayerOrder.indexOf(a) - restartedPlayerOrder.indexOf(b);
+            return Player.sort.byName(a,b);
         }
     }
 }
@@ -89,6 +80,8 @@ Game.prototype = {
         return player;
     },
 
+    getDisplayOrderedPlayers: function() { return this.getOrderOfPlayers().concat(this.players.filter(Player.filter.isOut).sort(Player.sort.byRank)); },
+
     getWinner: function() {
         var player;
         $.each(this.players, function(i, p) {
@@ -117,33 +110,17 @@ Game.prototype = {
         this.players = this.getOrderOfPlayers();
     },
 
-    getPlayersInGame: function() {
-        return this.players.filter(Player.filter.isIn);
-    },
+    getPlayersInGame: function() { return this.players.filter(Player.filter.isIn); },
 
-    getPlayersOutOfGame: function() {
-        return this.players.filter(Player.filter.isOut);
-    },
+    getPlayersOutOfGame: function() { return this.players.filter(Player.filter.isOut); },
 
     getOrderOfPlayers: function() {
-        var sorted;
-        if (this.round == 0) {
-            if (this.restartedPlayerOrder) {
-                sorted = this.restartedPlayerOrder;
-            } else {
-                sorted = this.getPlayersInGame().sort(Player.sort.byName);
-            }
-        } else {
-            sorted = this.getPlayersInGame().sort(Player.sort.byRoundScoreHighToLow(this.round - 1));
-        }
-        return sorted;
+        return this.getPlayersInGame().sort(Player.sort.byRoundScoreHighToLow(this.round - 1, this.restartedPlayerOrder));
     },
 
     getCurrentPlayer: function() {
         var sorted = this.getOrderOfPlayers();
-        if (sorted.length > 0) {
-            return sorted[this.cur];
-        }
+        if (sorted.length > 0) return sorted[this.cur];
         return undefined;
     },
 
@@ -153,9 +130,7 @@ Game.prototype = {
         return this.advanceToNextPlayer();
     },
 
-    addScoreToCurrentPlayer: function(score) {
-        return this.addScore(this.getCurrentPlayer(), score);
-    },
+    addScoreToCurrentPlayer: function(score) { return this.addScore(this.getCurrentPlayer(), score); },
 
     dropLosers: function() {
         if (this.isOver()) return [];
