@@ -103,6 +103,9 @@ Game.prototype = {
     addPlayer: function(player) { this.players.push(player); },
 
     start: function() {
+    	if (this.isOver()) {
+            this.restartedPlayerOrder = this.getPlayersOutOfGame().sort(Player.sort.byRank);
+    	}
         this.round = 0;
         this.cur = 0;
         $.each(this.players, function(i, p) {
@@ -197,7 +200,6 @@ Game.prototype = {
             });
             if (this.getPlayersInGame().length == 1) {
                 losers.push(this.dropLosers()[0]);
-                this.restartedPlayerOrder = this.getPlayersOutOfGame().sort(Player.sort.byRank);
             } else {
                 this.nextRound();
             } 
@@ -216,7 +218,6 @@ Game.prototype = {
                 p.setRank(null);
             });
             this.rank += losers.length;
-            this.restartedPlayerOrder = false;
         }
         var previousPlayer = this.getPlayer(this.orderHistory.pop());
         previousPlayer.getScores().pop();
