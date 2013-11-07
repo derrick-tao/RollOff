@@ -7,9 +7,9 @@ function Player(name) {
 
 Player.sort = {
     byName: function(a, b) {
-        if (a.getName() < b.getName())
+        if (a.getName().toLowerCase() < b.getName().toLowerCase() )
             return -1;
-        if (a.getName() > b.getName())
+        if (a.getName().toLowerCase() > b.getName().toLowerCase() )
             return 1;
         return 0; 
     },
