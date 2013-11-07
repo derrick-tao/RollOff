@@ -44,14 +44,14 @@
                 </tbody>
             </table>
             <div class="lower" ng-controller="InputCtrl"> 
-                <div id="formInput" ng-hide="$game.hasGameStarted()">
-                    <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Add Player" ng-model="playerName" ng-trim ui-keypress="{'enter':'addPlayer()'}">
+                <form name="fAddPlayer" id="formInput" ng-hide="$game.hasGameStarted()">
+                    <div class="input-group" ng-class="{'has-error': ! fAddPlayer.iPlayerName.$valid}">
+                        <input name="iPlayerName" type="text" class="form-control" placeholder="Add Player" ng-model="playerName" ng-trim ui-keypress="{'enter':'addPlayer()'}" ng-maxlength="20">
                         <span class="input-group-btn">
                             <button class="btn btn-default" type="button" ng-click="addPlayer()" ng-disabled="! playerName"><i class="icon-plus"></i> Add</button>
                         </span>
                     </div>
-                </div>
+                </form>
                 <div id="notification" class="panel panel-default text-center" ng-show="notificationText">
                     <div class="panel-body">{{notificationText}}</div>
                 </div>
