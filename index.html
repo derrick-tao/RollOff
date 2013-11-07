@@ -48,7 +48,7 @@
                     <div class="input-group">
                         <input type="text" class="form-control" placeholder="Add Player" ng-model="playerName" ng-trim ui-keypress="{'enter':'addPlayer()'}">
                         <span class="input-group-btn">
-                            <button class="btn btn-default" type="button" ng-click="addPlayer()"><i class="icon-plus"></i> Add</button>
+                            <button class="btn btn-default" type="button" ng-click="addPlayer()" ng-disabled="! playerName"><i class="icon-plus"></i> Add</button>
                         </span>
                     </div>
                 </div>
