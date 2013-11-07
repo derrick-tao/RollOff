@@ -46,6 +46,15 @@ table td:first-child {
   font-weight: bold;
 }
 
+table td:first-child {
+  position: relative;
+}
+
+table td:first-child .badge {
+  position: absolute;
+  left: 5px;
+}
+
 .lower {
   padding-bottom: 15px;
 }
